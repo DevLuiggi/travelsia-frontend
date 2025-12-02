@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Plane, Calendar, Users, ArrowRight } from 'lucide-react';
 import { useFlights } from '../../hooks/useFlights';
 import { Button, Input, Alert } from '../ui';
-import { COMMON_AIRPORTS } from '../../types';
+import { COMMON_AIRPORTS, IATA_AIRPORTS } from '../../types';
+import { useMemo } from 'react';
 
 const flightSearchSchema = z.object({
   origin: z.string()
@@ -45,7 +46,25 @@ export function FlightSearchForm() {
     },
   });
 
+  const originValue = watch('origin') || '';
+  const destinationValue = watch('destination') || '';
   const departureDate = watch('departureDate');
+
+  const filteredOriginOptions = useMemo(() => {
+    const q = originValue.trim().toUpperCase();
+    if (!q) return IATA_AIRPORTS.slice(0, 20);
+    return IATA_AIRPORTS.filter(opt =>
+      opt.value.includes(q) || opt.label.toUpperCase().includes(q)
+    ).slice(0, 20);
+  }, [originValue]);
+
+  const filteredDestinationOptions = useMemo(() => {
+    const q = destinationValue.trim().toUpperCase();
+    if (!q) return IATA_AIRPORTS.slice(0, 20);
+    return IATA_AIRPORTS.filter(opt =>
+      opt.value.includes(q) || opt.label.toUpperCase().includes(q)
+    ).slice(0, 20);
+  }, [destinationValue]);
 
   const onSubmit = async (data: FlightSearchFormData) => {
     try {
@@ -79,29 +98,68 @@ export function FlightSearchForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Origin */}
-          <div>
+          <div className="relative">
             <Input
               label="Origen (Código IATA)"
               placeholder="ej: MAD"
               error={errors.origin?.message}
               {...register('origin')}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Código de 3 letras del aeropuerto
-            </p>
+            {originValue && filteredOriginOptions.length > 0 && (
+              <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-md border border-gray-200 bg-white shadow">
+                {filteredOriginOptions.map((opt) => (
+                  <button
+                    type="button"
+                    key={`origin-${opt.value}`}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                    onClick={() => {
+                      // Directly set the input's value via DOM for RHF compatibility
+                      const input = document.querySelector<HTMLInputElement>('input[name="origin"]');
+                      if (input) {
+                        input.value = opt.value;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                      }
+                    }}
+                  >
+                    <span className="font-medium">{opt.value}</span>
+                    <span className="text-gray-600 ml-2">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">Código de 3 letras del aeropuerto</p>
           </div>
 
           {/* Destination */}
-          <div>
+          <div className="relative">
             <Input
               label="Destino (Código IATA)"
               placeholder="ej: PAR"
               error={errors.destination?.message}
               {...register('destination')}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Código de 3 letras del aeropuerto
-            </p>
+            {destinationValue && filteredDestinationOptions.length > 0 && (
+              <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-md border border-gray-200 bg-white shadow">
+                {filteredDestinationOptions.map((opt) => (
+                  <button
+                    type="button"
+                    key={`destination-${opt.value}`}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                    onClick={() => {
+                      const input = document.querySelector<HTMLInputElement>('input[name="destination"]');
+                      if (input) {
+                        input.value = opt.value;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                      }
+                    }}
+                  >
+                    <span className="font-medium">{opt.value}</span>
+                    <span className="text-gray-600 ml-2">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">Código de 3 letras del aeropuerto</p>
           </div>
         </div>
 
