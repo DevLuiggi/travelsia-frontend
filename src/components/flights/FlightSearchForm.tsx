@@ -6,7 +6,7 @@ import { Plane, Calendar, Users, ArrowRight } from 'lucide-react';
 import { useFlights } from '../../hooks/useFlights';
 import { Button, Input, Alert } from '../ui';
 import { COMMON_AIRPORTS, IATA_AIRPORTS } from '../../types';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 const flightSearchSchema = z.object({
   origin: z.string()
@@ -37,6 +37,7 @@ export function FlightSearchForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FlightSearchFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,6 +50,9 @@ export function FlightSearchForm() {
   const originValue = watch('origin') || '';
   const destinationValue = watch('destination') || '';
   const departureDate = watch('departureDate');
+
+  const [originOpen, setOriginOpen] = useState(false);
+  const [destinationOpen, setDestinationOpen] = useState(false);
 
   const filteredOriginOptions = useMemo(() => {
     const q = originValue.trim().toUpperCase();
@@ -99,26 +103,42 @@ export function FlightSearchForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Origin */}
           <div className="relative">
-            <Input
-              label="Origen (Código IATA)"
-              placeholder="ej: MAD"
-              error={errors.origin?.message}
-              {...register('origin')}
-            />
-            {originValue && filteredOriginOptions.length > 0 && (
+            {(() => {
+              const originReg = register('origin');
+              return (
+                <Input
+                  label="Origen (Código IATA)"
+                  placeholder="ej: MAD"
+                  error={errors.origin?.message}
+                  {...originReg}
+                  onFocus={(e) => {
+                    setOriginOpen(true);
+                    // @ts-expect-error forward RHF event
+                    originReg.onFocus?.(e);
+                  }}
+                  onChange={(e) => {
+                    setOriginOpen(true);
+                    originReg.onChange(e);
+                  }}
+                  onBlur={(e) => {
+                    // small delay to allow click on suggestion
+                    setTimeout(() => setOriginOpen(false), 120);
+                    originReg.onBlur(e);
+                  }}
+                />
+              );
+            })()}
+            {originOpen && filteredOriginOptions.length > 0 && (
               <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-md border border-gray-200 bg-white shadow">
                 {filteredOriginOptions.map((opt) => (
                   <button
                     type="button"
                     key={`origin-${opt.value}`}
                     className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
-                      // Directly set the input's value via DOM for RHF compatibility
-                      const input = document.querySelector<HTMLInputElement>('input[name="origin"]');
-                      if (input) {
-                        input.value = opt.value;
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                      }
+                      setValue('origin', opt.value, { shouldValidate: true, shouldDirty: true });
+                      setOriginOpen(false);
                     }}
                   >
                     <span className="font-medium">{opt.value}</span>
@@ -132,25 +152,41 @@ export function FlightSearchForm() {
 
           {/* Destination */}
           <div className="relative">
-            <Input
-              label="Destino (Código IATA)"
-              placeholder="ej: PAR"
-              error={errors.destination?.message}
-              {...register('destination')}
-            />
-            {destinationValue && filteredDestinationOptions.length > 0 && (
+            {(() => {
+              const destReg = register('destination');
+              return (
+                <Input
+                  label="Destino (Código IATA)"
+                  placeholder="ej: PAR"
+                  error={errors.destination?.message}
+                  {...destReg}
+                  onFocus={(e) => {
+                    setDestinationOpen(true);
+                    // @ts-expect-error forward RHF event
+                    destReg.onFocus?.(e);
+                  }}
+                  onChange={(e) => {
+                    setDestinationOpen(true);
+                    destReg.onChange(e);
+                  }}
+                  onBlur={(e) => {
+                    setTimeout(() => setDestinationOpen(false), 120);
+                    destReg.onBlur(e);
+                  }}
+                />
+              );
+            })()}
+            {destinationOpen && filteredDestinationOptions.length > 0 && (
               <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-md border border-gray-200 bg-white shadow">
                 {filteredDestinationOptions.map((opt) => (
                   <button
                     type="button"
                     key={`destination-${opt.value}`}
                     className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
-                      const input = document.querySelector<HTMLInputElement>('input[name="destination"]');
-                      if (input) {
-                        input.value = opt.value;
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                      }
+                      setValue('destination', opt.value, { shouldValidate: true, shouldDirty: true });
+                      setDestinationOpen(false);
                     }}
                   >
                     <span className="font-medium">{opt.value}</span>
