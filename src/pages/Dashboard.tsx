@@ -73,7 +73,7 @@ export function Dashboard() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          ¡Bienvenido, {user?.email?.split('@')[0]}! 👋
+          ¡Bienvenido, {user?.firstName || 'Viajero'}! 👋
         </h1>
         <p className="text-gray-600">
           ¿Listo para planificar tu próximo viaje?
