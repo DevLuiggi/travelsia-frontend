@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, Settings, Check } from 'lucide-react';
+import { User, Mail, LogOut, Settings, Check, Phone, MapPin, Calendar, Edit2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { Card, CardHeader, CardTitle, CardContent, Button, Alert } from '../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button, Alert, Input } from '../components/ui';
 import type { TravelStyle, ActivityType } from '../types';
 
 export function Profile() {
-  const { user, preferences, updatePreferences, logout, isLoading, error, clearError, fetchPreferences } = useAuth();
+  const { user, preferences, updatePreferences, updateProfile, logout, isLoading, error, clearError, fetchPreferences, fetchProfile } = useAuth();
   const navigate = useNavigate();
   
   const [travelStyle, setTravelStyle] = useState<TravelStyle | undefined>(preferences?.travelStyle);
@@ -14,11 +14,21 @@ export function Profile() {
     preferences?.favoriteActivities || []
   );
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  
+  // Profile form state
+  const [firstName, setFirstName] = useState(user?.firstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [country, setCountry] = useState(user?.country || '');
+  const [city, setCity] = useState(user?.city || '');
 
-  // Load preferences on mount
+  // Load preferences and profile on mount
   useEffect(() => {
     fetchPreferences();
-  }, [fetchPreferences]);
+    fetchProfile();
+  }, [fetchPreferences, fetchProfile]);
 
   // Update local state when preferences change
   useEffect(() => {
@@ -28,10 +38,21 @@ export function Profile() {
     }
   }, [preferences]);
 
+  // Update local state when user changes
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setPhone(user.phone || '');
+      setCountry(user.country || '');
+      setCity(user.city || '');
+    }
+  }, [user]);
+
   const travelStyles: { value: TravelStyle; label: string; emoji: string; description: string }[] = [
     { value: 'economic', label: 'Económico', emoji: '💰', description: 'Optimizar costos sin sacrificar experiencias' },
-    { value: 'balanced', label: 'Equilibrado', emoji: '⚖️', description: 'Balance entre comodidad y presupuesto' },
-    { value: 'premium', label: 'Premium', emoji: '✨', description: 'Experiencias de lujo y comodidad' },
+    { value: 'moderate', label: 'Moderado', emoji: '⚖️', description: 'Balance entre comodidad y presupuesto' },
+    { value: 'luxury', label: 'Lujo', emoji: '✨', description: 'Experiencias premium y comodidad total' },
   ];
 
   const activityTypes: { value: ActivityType; label: string; emoji: string }[] = [
@@ -39,6 +60,7 @@ export function Profile() {
     { value: 'nature', label: 'Naturaleza', emoji: '🌿' },
     { value: 'gastronomy', label: 'Gastronomía', emoji: '🍽️' },
     { value: 'nightlife', label: 'Vida Nocturna', emoji: '🌙' },
+    { value: 'adventure', label: 'Aventura', emoji: '🎯' },
   ];
 
   const toggleActivity = (activity: ActivityType) => {
@@ -67,6 +89,24 @@ export function Profile() {
     }
   };
 
+  const handleSaveProfile = async () => {
+    try {
+      clearError();
+      await updateProfile({
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        phone: phone || undefined,
+        country: country || undefined,
+        city: city || undefined,
+      });
+      setProfileSaveSuccess(true);
+      setEditingProfile(false);
+      setTimeout(() => setProfileSaveSuccess(false), 3000);
+    } catch {
+      // Error handled by store
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -79,26 +119,117 @@ export function Profile() {
       {/* User Info */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5 text-gray-600" />
-            Información de Usuario
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-gray-600" />
+              Información de Usuario
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingProfile(!editingProfile)}
+            >
+              <Edit2 className="w-4 h-4" />
+              {editingProfile ? 'Cancelar' : 'Editar'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-              <User className="w-8 h-8 text-primary-600" />
-            </div>
-            <div>
-              <p className="flex items-center gap-2 text-gray-900">
-                <Mail className="w-4 h-4 text-gray-500" />
-                {user?.email}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
+          {profileSaveSuccess && (
+            <Alert type="success" className="mb-4">
+              <Check className="w-4 h-4 inline mr-1" />
+              Perfil actualizado correctamente
+            </Alert>
+          )}
+
+          {!editingProfile ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
+                  <User className="w-8 h-8 text-primary-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {user?.firstName && user?.lastName 
+                      ? `${user.firstName} ${user.lastName}` 
+                      : 'Sin nombre'}
+                  </p>
+                  <p className="flex items-center gap-2 text-gray-600 text-sm">
+                    <Mail className="w-4 h-4" />
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                {user?.phone && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    <span>{user.phone}</span>
+                  </div>
+                )}
+                {(user?.city || user?.country) && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <MapPin className="w-4 h-4" />
+                    <span>{[user.city, user.country].filter(Boolean).join(', ')}</span>
+                  </div>
+                )}
+                {user?.birthDate && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <span>{new Date(user.birthDate).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-sm text-gray-500">
                 Rol: {user?.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
               </p>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Nombre"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Juan"
+                />
+                <Input
+                  label="Apellido"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Pérez"
+                />
+              </div>
+              <Input
+                label="Teléfono"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+51 999 888 777"
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="País"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  placeholder="Perú"
+                />
+                <Input
+                  label="Ciudad"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Lima"
+                />
+              </div>
+              <Button
+                onClick={handleSaveProfile}
+                isLoading={isLoading}
+              >
+                Guardar Cambios
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

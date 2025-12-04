@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, CheckCircle } from 'lucide-react';
+import { Mail, Lock, CheckCircle, User, Phone, MapPin, Calendar } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button, Input, Alert } from '../ui';
 
@@ -12,6 +12,12 @@ const registerSchema = z.object({
   password: z.string()
     .min(6, 'La contraseña debe tener al menos 6 caracteres'),
   confirmPassword: z.string(),
+  firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+  phone: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
+  birthDate: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Las contraseñas no coinciden',
   path: ['confirmPassword'],
@@ -35,7 +41,16 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       clearError();
-      await registerUser(data.email, data.password);
+      await registerUser({
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone || undefined,
+        country: data.country || undefined,
+        city: data.city || undefined,
+        birthDate: data.birthDate || undefined,
+      });
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
@@ -75,6 +90,32 @@ export function RegisterForm() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Name Fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="relative">
+              <User className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+              <Input
+                label="Nombre"
+                type="text"
+                placeholder="Juan"
+                className="pl-10"
+                error={errors.firstName?.message}
+                {...register('firstName')}
+              />
+            </div>
+            <div className="relative">
+              <User className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+              <Input
+                label="Apellido"
+                type="text"
+                placeholder="Pérez"
+                className="pl-10"
+                error={errors.lastName?.message}
+                {...register('lastName')}
+              />
+            </div>
+          </div>
+
           <div className="relative">
             <Mail className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
             <Input
@@ -109,6 +150,59 @@ export function RegisterForm() {
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
+          </div>
+
+          {/* Optional Fields */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <p className="text-sm text-gray-500 mb-3">Información adicional (opcional)</p>
+            
+            <div className="relative mb-4">
+              <Phone className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+              <Input
+                label="Teléfono"
+                type="tel"
+                placeholder="+51 999 888 777"
+                className="pl-10"
+                error={errors.phone?.message}
+                {...register('phone')}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="relative">
+                <MapPin className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+                <Input
+                  label="País"
+                  type="text"
+                  placeholder="Perú"
+                  className="pl-10"
+                  error={errors.country?.message}
+                  {...register('country')}
+                />
+              </div>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+                <Input
+                  label="Ciudad"
+                  type="text"
+                  placeholder="Lima"
+                  className="pl-10"
+                  error={errors.city?.message}
+                  {...register('city')}
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <Calendar className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+              <Input
+                label="Fecha de Nacimiento"
+                type="date"
+                className="pl-10"
+                error={errors.birthDate?.message}
+                {...register('birthDate')}
+              />
+            </div>
           </div>
 
           <Button

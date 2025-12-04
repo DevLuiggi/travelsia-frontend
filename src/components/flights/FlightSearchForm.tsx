@@ -2,11 +2,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { Plane, Calendar, Users, ArrowRight } from 'lucide-react';
+import { Plane, Calendar, Users, ArrowRight, DollarSign, Briefcase } from 'lucide-react';
 import { useFlights } from '../../hooks/useFlights';
-import { Button, Input, Alert } from '../ui';
+import { Button, Input, Alert, Select } from '../ui';
 import { COMMON_AIRPORTS, IATA_AIRPORTS } from '../../types';
 import { useMemo, useState } from 'react';
+
+const TRAVEL_PURPOSE_OPTIONS = [
+  { value: '', label: 'Seleccionar (opcional)' },
+  { value: 'leisure', label: '🏖️ Ocio / Vacaciones' },
+  { value: 'business', label: '💼 Negocios' },
+  { value: 'family', label: '👨‍👩‍👧‍👦 Familiar' },
+  { value: 'adventure', label: '🎯 Aventura' },
+  { value: 'romantic', label: '💕 Romántico' },
+];
 
 const flightSearchSchema = z.object({
   origin: z.string()
@@ -20,6 +29,8 @@ const flightSearchSchema = z.object({
   departureDate: z.string().min(1, 'Selecciona fecha de salida'),
   returnDate: z.string().optional(),
   adults: z.coerce.number().min(1, 'Mínimo 1 adulto').max(9, 'Máximo 9 adultos'),
+  travelPurpose: z.string().optional(),
+  estimatedBudget: z.coerce.number().optional(),
 });
 
 type FlightSearchFormData = z.infer<typeof flightSearchSchema>;
@@ -79,6 +90,8 @@ export function FlightSearchForm() {
         departureDate: data.departureDate,
         returnDate: data.returnDate || undefined,
         adults: data.adults,
+        travelPurpose: data.travelPurpose as 'leisure' | 'business' | 'family' | 'adventure' | 'romantic' | undefined,
+        estimatedBudget: data.estimatedBudget || undefined,
       });
       navigate('/flights/results');
     } catch {
@@ -237,6 +250,32 @@ export function FlightSearchForm() {
               className="pl-10"
               error={errors.adults?.message}
               {...register('adults')}
+            />
+          </div>
+        </div>
+
+        {/* Optional Fields: Travel Purpose & Budget */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+          <div className="relative">
+            <Briefcase className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+            <Select
+              label="Propósito del Viaje (Opcional)"
+              options={TRAVEL_PURPOSE_OPTIONS}
+              className="pl-10"
+              {...register('travelPurpose')}
+            />
+          </div>
+
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
+            <Input
+              label="Presupuesto Estimado USD (Opcional)"
+              type="number"
+              min={0}
+              placeholder="ej: 1500"
+              className="pl-10"
+              error={errors.estimatedBudget?.message}
+              {...register('estimatedBudget')}
             />
           </div>
         </div>

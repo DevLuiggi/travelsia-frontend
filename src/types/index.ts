@@ -14,29 +14,59 @@ export interface LoginResponse {
 export interface RegisterRequest {
   email: string;
   password: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  birthDate?: string;
 }
 
 export interface User {
   id: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  birthDate?: string;
   role: 'USER' | 'ADMIN';
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  preferences?: UserPreferences;
 }
 
 export interface AuthProfile {
-  userId: string;
+  id: string;
+  userId?: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  birthDate?: string;
   role: 'USER' | 'ADMIN';
+  preferences?: UserPreferences;
+}
+
+export interface UpdateProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  birthDate?: string;
 }
 
 // ============================================================
 // PREFERENCES
 // ============================================================
 
-export type TravelStyle = 'economic' | 'balanced' | 'premium';
+export type TravelStyle = 'economic' | 'moderate' | 'luxury';
 
-export type ActivityType = 'culture' | 'nature' | 'gastronomy' | 'nightlife';
+export type ActivityType = 'culture' | 'nature' | 'gastronomy' | 'nightlife' | 'adventure';
 
 export interface UserPreferences {
   travelStyle?: TravelStyle;
@@ -47,12 +77,16 @@ export interface UserPreferences {
 // FLIGHTS
 // ============================================================
 
+export type TravelPurpose = 'leisure' | 'business' | 'family' | 'adventure' | 'romantic';
+
 export interface FlightSearchParams {
   origin: string;
   destination: string;
   departureDate: string;
   returnDate?: string;
   adults: number;
+  travelPurpose?: TravelPurpose;
+  estimatedBudget?: number;
 }
 
 export interface FlightLocation {
@@ -103,6 +137,9 @@ export interface FlightSearchHistory {
   departureDate: string;
   returnDate?: string;
   adults: number;
+  travelPurpose?: TravelPurpose;
+  estimatedBudget?: number;
+  syncedToSheets?: boolean;
   createdAt: string;
 }
 

@@ -5,6 +5,7 @@ import type {
   RegisterRequest,
   User,
   AuthProfile,
+  UpdateProfileRequest,
   UserPreferences,
   FlightSearchParams,
   FlightSearchResponse,
@@ -105,6 +106,11 @@ class ApiService {
     return response.data;
   }
 
+  async updateProfile(data: UpdateProfileRequest): Promise<AuthProfile> {
+    const response = await this.api.put<AuthProfile>('/auth/profile', data);
+    return response.data;
+  }
+
   logout(): void {
     this.clearToken();
   }
@@ -135,6 +141,14 @@ class ApiService {
       queryParams.append('returnDate', params.returnDate);
     }
 
+    if (params.travelPurpose) {
+      queryParams.append('travelPurpose', params.travelPurpose);
+    }
+
+    if (params.estimatedBudget) {
+      queryParams.append('estimatedBudget', params.estimatedBudget.toString());
+    }
+
     const response = await this.api.get<FlightSearchResponse>(
       `/flights/search?${queryParams}`
     );
@@ -143,7 +157,7 @@ class ApiService {
 
   async getFlightSearchHistory(limit = 10): Promise<FlightSearchHistory[]> {
     const response = await this.api.get<FlightSearchHistory[]>(
-      `/flights/searches?limit=${limit}`
+      `/flights/my-searches?limit=${limit}`
     );
     return response.data;
   }

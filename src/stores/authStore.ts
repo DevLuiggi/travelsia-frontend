@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AuthProfile, UserPreferences } from '../types';
+import type { AuthProfile, UserPreferences, RegisterRequest, UpdateProfileRequest } from '../types';
 import { api } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandler';
 
@@ -12,9 +12,10 @@ interface AuthState {
   
   // Actions
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   fetchProfile: () => Promise<void>;
+  updateProfile: (data: UpdateProfileRequest) => Promise<void>;
   fetchPreferences: () => Promise<void>;
   updatePreferences: (preferences: UserPreferences) => Promise<void>;
   clearError: () => void;
@@ -42,10 +43,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  register: async (email: string, password: string) => {
+  register: async (data: RegisterRequest) => {
     set({ isLoading: true, error: null });
     try {
-      await api.register({ email, password });
+      await api.register(data);
       set({ isLoading: false });
     } catch (error) {
       set({ error: getErrorMessage(error), isLoading: false });
@@ -67,6 +68,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: profile, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ error: getErrorMessage(error), isLoading: false, isAuthenticated: false });
+    }
+  },
+
+  updateProfile: async (data: UpdateProfileRequest) => {
+    set({ isLoading: true, error: null });
+    try {
+      const profile = await api.updateProfile(data);
+      set({ user: profile, isLoading: false });
+    } catch (error) {
+      set({ error: getErrorMessage(error), isLoading: false });
+      throw error;
     }
   },
 
