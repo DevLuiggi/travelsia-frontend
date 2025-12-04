@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Plane, User, LogOut, Menu, X } from 'lucide-react';
+import { User, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui';
@@ -21,7 +21,7 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <Plane className="w-8 h-8 text-primary-600" />
+            <img src="/logo.png" alt="TravelSIA" className="w-8 h-8" />
             <span className="text-xl font-bold text-gray-900">TravelSIA</span>
           </Link>
 
