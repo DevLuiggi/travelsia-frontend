@@ -52,7 +52,7 @@ export function Dashboard() {
     switch (style) {
       case 'economic': return '💰 Económico';
       case 'balanced': return '⚖️ Equilibrado';
-      case 'premium': return '✨ Premium';
+      case 'luxury': return '✨ Lujo';
       default: return 'No configurado';
     }
   };
@@ -63,6 +63,7 @@ export function Dashboard() {
       case 'nature': return '🌿 Naturaleza';
       case 'gastronomy': return '🍽️ Gastronomía';
       case 'nightlife': return '🌙 Vida Nocturna';
+      case 'adventure': return '🎯 Aventura'
       default: return activity;
     }
   };
